@@ -76,16 +76,20 @@ class OrderManager {
     
     /**
      * 指定日のメニューを取得
-     * 
+     * 優先順位: 曜日メニュー > 週替わり > 日替わり > 定番
+     *
      * @param string $date 配達日（Y-m-d）
      * @return array メニュー配列
      */
     public function getMenusForDate($date) {
-        // 週替わりメニュー取得（優先）
+        // 曜日メニュー取得（最優先）
+        $weekdayMenu = $this->getWeekdayMenuForDate($date);
+
+        // 週替わりメニュー取得（2番目の優先度）
         $weeklyMenu = $this->getWeeklyMenuForDate($date);
-        
+
         // 日替わりメニュー取得
-        $dailySql = "SELECT 
+        $dailySql = "SELECT
                         p.id,
                         p.product_code,
                         p.product_name,
@@ -100,11 +104,11 @@ class OrderManager {
                       AND dm.is_available = 1
                       AND p.is_active = 1
                     ORDER BY dm.display_order, p.product_name";
-        
+
         $dailyMenus = $this->db->fetchAll($dailySql, ['menu_date' => $date]);
-        
+
         // 定番メニュー取得
-        $standardSql = "SELECT 
+        $standardSql = "SELECT
                             id,
                             product_code,
                             product_name,
@@ -117,25 +121,29 @@ class OrderManager {
                         WHERE category_code = 'STANDARD'
                           AND is_active = 1
                         ORDER BY product_name";
-        
+
         $standardMenus = $this->db->fetchAll($standardSql);
-        
-        // 週替わりメニューがある場合は優先的に表示
-        if ($weeklyMenu) {
+
+        // 優先順位に従ってメニューを統合
+        // 曜日メニュー > 週替わり > 日替わりの順で追加
+        if ($weekdayMenu) {
+            $dailyMenus = array_merge([$weekdayMenu], $dailyMenus);
+        } else if ($weeklyMenu) {
             $dailyMenus = array_merge([$weeklyMenu], $dailyMenus);
         }
-        
+
         return [
             'daily' => $dailyMenus,
             'standard' => $standardMenus,
             'date' => $date,
+            'has_weekday' => !empty($weekdayMenu),
             'has_weekly' => !empty($weeklyMenu)
         ];
     }
     
     /**
      * 指定日の週替わりメニューを取得
-     * 
+     *
      * @param string $date 配達日（Y-m-d）
      * @return array|null 週替わりメニュー
      */
@@ -146,10 +154,10 @@ class OrderManager {
         $daysToMonday = ($dayOfWeek == 0) ? -6 : -(($dayOfWeek - 1));
         $monday = clone $dateObj;
         $monday->modify("{$daysToMonday} days");
-        
+
         $weekStartDate = $monday->format('Y-m-d');
-        
-        $sql = "SELECT 
+
+        $sql = "SELECT
                     p.id,
                     p.product_code,
                     p.product_name,
@@ -164,8 +172,43 @@ class OrderManager {
                   AND wm.is_available = 1
                   AND p.is_active = 1
                 LIMIT 1";
-        
+
         return $this->db->fetch($sql, ['week_start_date' => $weekStartDate]);
+    }
+
+    /**
+     * 指定日の曜日メニューを取得
+     *
+     * @param string $date 配達日（Y-m-d）
+     * @return array|null 曜日メニュー
+     */
+    private function getWeekdayMenuForDate($date) {
+        // 日付から曜日を取得（1=月, 7=日）
+        $dateObj = new DateTime($date);
+        $weekday = (int)$dateObj->format('N');
+
+        $sql = "SELECT
+                    p.id,
+                    p.product_code,
+                    p.product_name,
+                    p.category_code,
+                    p.category_name,
+                    p.unit_price,
+                    wdm.special_note,
+                    'weekday' as menu_type
+                FROM weekday_menus wdm
+                INNER JOIN products p ON wdm.product_id = p.id
+                WHERE wdm.weekday = :weekday
+                  AND wdm.is_active = 1
+                  AND p.is_active = 1
+                  AND (wdm.effective_from IS NULL OR wdm.effective_from <= :date)
+                  AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date)
+                LIMIT 1";
+
+        return $this->db->fetch($sql, [
+            'weekday' => $weekday,
+            'date' => $date
+        ]);
     }
     
     /**
