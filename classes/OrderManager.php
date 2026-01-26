@@ -183,32 +183,38 @@ class OrderManager {
      * @return array|null 曜日メニュー
      */
     private function getWeekdayMenuForDate($date) {
-        // 日付から曜日を取得（1=月, 7=日）
-        $dateObj = new DateTime($date);
-        $weekday = (int)$dateObj->format('N');
+        try {
+            // 日付から曜日を取得（1=月, 7=日）
+            $dateObj = new DateTime($date);
+            $weekday = (int)$dateObj->format('N');
 
-        $sql = "SELECT
-                    p.id,
-                    p.product_code,
-                    p.product_name,
-                    p.category_code,
-                    p.category_name,
-                    p.unit_price,
-                    wdm.special_note,
-                    'weekday' as menu_type
-                FROM weekday_menus wdm
-                INNER JOIN products p ON wdm.product_id = p.id
-                WHERE wdm.weekday = :weekday
-                  AND wdm.is_active = 1
-                  AND p.is_active = 1
-                  AND (wdm.effective_from IS NULL OR wdm.effective_from <= :date)
-                  AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date)
-                LIMIT 1";
+            $sql = "SELECT
+                        p.id,
+                        p.product_code,
+                        p.product_name,
+                        p.category_code,
+                        p.category_name,
+                        p.unit_price,
+                        wdm.special_note,
+                        'weekday' as menu_type
+                    FROM weekday_menus wdm
+                    INNER JOIN products p ON wdm.product_id = p.id
+                    WHERE wdm.weekday = :weekday
+                      AND wdm.is_active = 1
+                      AND p.is_active = 1
+                      AND (wdm.effective_from IS NULL OR wdm.effective_from <= :date)
+                      AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date)
+                    LIMIT 1";
 
-        return $this->db->fetch($sql, [
-            'weekday' => $weekday,
-            'date' => $date
-        ]);
+            return $this->db->fetch($sql, [
+                'weekday' => $weekday,
+                'date' => $date
+            ]);
+        } catch (Exception $e) {
+            // weekday_menusテーブルが存在しない場合はnullを返す
+            error_log("Weekday menu error (table may not exist): " . $e->getMessage());
+            return null;
+        }
     }
     
     /**

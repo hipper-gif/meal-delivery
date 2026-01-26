@@ -73,10 +73,11 @@ try {
     
 } catch (Exception $e) {
     error_log("Orders API error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'サーバーエラーが発生しました'
+        'error' => 'サーバーエラーが発生しました: ' . $e->getMessage()
     ]);
 }
 
