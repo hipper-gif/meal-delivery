@@ -85,6 +85,11 @@ class OrderManager {
         // 曜日メニュー取得（最優先）
         $weekdayMenu = $this->getWeekdayMenuForDate($date);
 
+        // デバッグ情報をログ
+        error_log("=== getMenusForDate Debug ===");
+        error_log("Date: $date");
+        error_log("Weekday menu result: " . ($weekdayMenu ? json_encode($weekdayMenu) : 'NULL'));
+
         // 週替わりメニュー取得（2番目の優先度）
         $weeklyMenu = $this->getWeeklyMenuForDate($date);
 
@@ -127,18 +132,31 @@ class OrderManager {
         // 優先順位に従ってメニューを統合
         // 曜日メニュー > 週替わり > 日替わりの順で追加
         if ($weekdayMenu) {
+            error_log("Adding weekday menu to daily menus");
             $dailyMenus = array_merge([$weekdayMenu], $dailyMenus);
         } else if ($weeklyMenu) {
+            error_log("Adding weekly menu to daily menus");
             $dailyMenus = array_merge([$weeklyMenu], $dailyMenus);
         }
 
-        return [
+        $result = [
             'daily' => $dailyMenus,
             'standard' => $standardMenus,
             'date' => $date,
             'has_weekday' => !empty($weekdayMenu),
-            'has_weekly' => !empty($weeklyMenu)
+            'has_weekly' => !empty($weeklyMenu),
+            // 一時的なデバッグ情報
+            '_debug' => [
+                'weekday_menu_found' => !empty($weekdayMenu),
+                'weekday_menu_data' => $weekdayMenu,
+                'weekly_menu_found' => !empty($weeklyMenu),
+                'daily_menus_count' => count($dailyMenus)
+            ]
         ];
+
+        error_log("Final result: " . json_encode($result));
+
+        return $result;
     }
     
     /**
