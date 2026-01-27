@@ -188,6 +188,8 @@ class OrderManager {
             $dateObj = new DateTime($date);
             $weekday = (int)$dateObj->format('N');
 
+            error_log("Getting weekday menu for date: $date, weekday: $weekday");
+
             $sql = "SELECT
                         p.id,
                         p.product_code,
@@ -206,10 +208,14 @@ class OrderManager {
                       AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date)
                     LIMIT 1";
 
-            return $this->db->fetch($sql, [
+            $result = $this->db->fetch($sql, [
                 'weekday' => $weekday,
                 'date' => $date
             ]);
+
+            error_log("Weekday menu result: " . print_r($result, true));
+
+            return $result;
         } catch (Exception $e) {
             // weekday_menusテーブルが存在しない場合はnullを返す
             error_log("Weekday menu error (table may not exist): " . $e->getMessage());
