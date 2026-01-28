@@ -191,7 +191,10 @@ class OrderManager {
                   AND p.is_active = 1
                 LIMIT 1";
 
-        return $this->db->fetch($sql, ['week_start_date' => $weekStartDate]);
+        $result = $this->db->fetch($sql, ['week_start_date' => $weekStartDate]);
+
+        // PDO::fetch() は結果がない場合 false を返す
+        return ($result === false) ? null : $result;
     }
 
     /**
@@ -206,7 +209,9 @@ class OrderManager {
             $dateObj = new DateTime($date);
             $weekday = (int)$dateObj->format('N');
 
-            error_log("Getting weekday menu for date: $date, weekday: $weekday");
+            error_log("=== getWeekdayMenuForDate START ===");
+            error_log("Date: $date");
+            error_log("Weekday: $weekday");
 
             $sql = "SELECT
                         p.id,
@@ -226,17 +231,29 @@ class OrderManager {
                       AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date)
                     LIMIT 1";
 
+            error_log("SQL: $sql");
+            error_log("Params: weekday=$weekday, date=$date");
+
             $result = $this->db->fetch($sql, [
                 'weekday' => $weekday,
                 'date' => $date
             ]);
 
-            error_log("Weekday menu result: " . print_r($result, true));
+            error_log("Result type: " . gettype($result));
+            error_log("Result empty check: " . (empty($result) ? 'empty' : 'not empty'));
+            error_log("Result is_array: " . (is_array($result) ? 'yes' : 'no'));
+            error_log("Result === false: " . ($result === false ? 'yes' : 'no'));
+            error_log("Result: " . print_r($result, true));
+            error_log("=== getWeekdayMenuForDate END ===");
 
-            return $result;
+            // PDO::fetch() は結果がない場合 false を返す
+            // false の場合は null を返して、empty() チェックで正しく動作するようにする
+            return ($result === false) ? null : $result;
         } catch (Exception $e) {
             // weekday_menusテーブルが存在しない場合はnullを返す
-            error_log("Weekday menu error (table may not exist): " . $e->getMessage());
+            error_log("=== getWeekdayMenuForDate EXCEPTION ===");
+            error_log("Error: " . $e->getMessage());
+            error_log("Trace: " . $e->getTraceAsString());
             return null;
         }
     }
