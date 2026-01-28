@@ -83,7 +83,8 @@ class OrderManager {
      */
     public function getMenusForDate($date) {
         // 曜日メニュー取得（最優先）
-        $weekdayMenu = $this->getWeekdayMenuForDate($date);
+        $weekdayMenuResult = $this->getWeekdayMenuForDateDebug($date);
+        $weekdayMenu = $weekdayMenuResult['menu'];
 
         // デバッグ情報をログ
         error_log("=== getMenusForDate Debug ===");
@@ -150,7 +151,10 @@ class OrderManager {
                 'weekday_menu_found' => !empty($weekdayMenu),
                 'weekday_menu_data' => $weekdayMenu,
                 'weekly_menu_found' => !empty($weeklyMenu),
-                'daily_menus_count' => count($dailyMenus)
+                'daily_menus_count' => count($dailyMenus),
+                'weekday_sql' => $weekdayMenuResult['sql'],
+                'weekday_params' => $weekdayMenuResult['params'],
+                'weekday_error' => $weekdayMenuResult['error']
             ]
         ];
 
@@ -195,6 +199,67 @@ class OrderManager {
 
         // PDO::fetch() は結果がない場合 false を返す
         return ($result === false) ? null : $result;
+    }
+
+    /**
+     * 指定日の曜日メニューを取得（デバッグ版）
+     *
+     * @param string $date 配達日（Y-m-d）
+     * @return array デバッグ情報を含む配列
+     */
+    private function getWeekdayMenuForDateDebug($date) {
+        try {
+            // 日付から曜日を取得（1=月, 7=日）
+            $dateObj = new DateTime($date);
+            $weekday = (int)$dateObj->format('N');
+
+            $sql = "SELECT
+                        p.id,
+                        p.product_code,
+                        p.product_name,
+                        p.category_code,
+                        p.category_name,
+                        p.unit_price,
+                        wdm.special_note,
+                        'weekday' as menu_type
+                    FROM weekday_menus wdm
+                    INNER JOIN products p ON wdm.product_id = p.id
+                    WHERE wdm.weekday = :weekday
+                      AND wdm.is_active = 1
+                      AND p.is_active = 1
+                      AND (wdm.effective_from IS NULL OR wdm.effective_from <= :date)
+                      AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date)
+                    LIMIT 1";
+
+            $params = [
+                'weekday' => $weekday,
+                'date' => $date
+            ];
+
+            $result = $this->db->fetch($sql, $params);
+
+            // PDO::fetch() は結果がない場合 false を返す
+            $menu = ($result === false) ? null : $result;
+
+            return [
+                'menu' => $menu,
+                'sql' => $sql,
+                'params' => $params,
+                'error' => null,
+                'raw_result_type' => gettype($result),
+                'raw_result_is_false' => ($result === false)
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'menu' => null,
+                'sql' => null,
+                'params' => null,
+                'error' => $e->getMessage(),
+                'raw_result_type' => null,
+                'raw_result_is_false' => null
+            ];
+        }
     }
 
     /**
