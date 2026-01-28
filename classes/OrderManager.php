@@ -83,13 +83,7 @@ class OrderManager {
      */
     public function getMenusForDate($date) {
         // 曜日メニュー取得（最優先）
-        $weekdayMenuResult = $this->getWeekdayMenuForDateDebug($date);
-        $weekdayMenu = $weekdayMenuResult['menu'];
-
-        // デバッグ情報をログ
-        error_log("=== getMenusForDate Debug ===");
-        error_log("Date: $date");
-        error_log("Weekday menu result: " . ($weekdayMenu ? json_encode($weekdayMenu) : 'NULL'));
+        $weekdayMenu = $this->getWeekdayMenuForDate($date);
 
         // 週替わりメニュー取得（2番目の優先度）
         $weeklyMenu = $this->getWeeklyMenuForDate($date);
@@ -133,34 +127,18 @@ class OrderManager {
         // 優先順位に従ってメニューを統合
         // 曜日メニュー > 週替わり > 日替わりの順で追加
         if ($weekdayMenu) {
-            error_log("Adding weekday menu to daily menus");
             $dailyMenus = array_merge([$weekdayMenu], $dailyMenus);
         } else if ($weeklyMenu) {
-            error_log("Adding weekly menu to daily menus");
             $dailyMenus = array_merge([$weeklyMenu], $dailyMenus);
         }
 
-        $result = [
+        return [
             'daily' => $dailyMenus,
             'standard' => $standardMenus,
             'date' => $date,
             'has_weekday' => !empty($weekdayMenu),
-            'has_weekly' => !empty($weeklyMenu),
-            // 一時的なデバッグ情報
-            '_debug' => [
-                'weekday_menu_found' => !empty($weekdayMenu),
-                'weekday_menu_data' => $weekdayMenu,
-                'weekly_menu_found' => !empty($weeklyMenu),
-                'daily_menus_count' => count($dailyMenus),
-                'weekday_sql' => $weekdayMenuResult['sql'],
-                'weekday_params' => $weekdayMenuResult['params'],
-                'weekday_error' => $weekdayMenuResult['error']
-            ]
+            'has_weekly' => !empty($weeklyMenu)
         ];
-
-        error_log("Final result: " . json_encode($result));
-
-        return $result;
     }
     
     /**
@@ -202,12 +180,12 @@ class OrderManager {
     }
 
     /**
-     * 指定日の曜日メニューを取得（デバッグ版）
+     * 指定日の曜日メニューを取得
      *
      * @param string $date 配達日（Y-m-d）
-     * @return array デバッグ情報を含む配列
+     * @return array|null 曜日メニュー
      */
-    private function getWeekdayMenuForDateDebug($date) {
+    private function getWeekdayMenuForDate($date) {
         try {
             // 日付から曜日を取得（1=月, 7=日）
             $dateObj = new DateTime($date);
@@ -231,95 +209,16 @@ class OrderManager {
                       AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date_to)
                     LIMIT 1";
 
-            $params = [
+            $result = $this->db->fetch($sql, [
                 'weekday' => $weekday,
                 'date_from' => $date,
                 'date_to' => $date
-            ];
-
-            $result = $this->db->fetch($sql, $params);
-
-            // PDO::fetch() は結果がない場合 false を返す
-            $menu = ($result === false) ? null : $result;
-
-            return [
-                'menu' => $menu,
-                'sql' => $sql,
-                'params' => $params,
-                'error' => null,
-                'raw_result_type' => gettype($result),
-                'raw_result_is_false' => ($result === false)
-            ];
-
-        } catch (Exception $e) {
-            return [
-                'menu' => null,
-                'sql' => null,
-                'params' => null,
-                'error' => $e->getMessage(),
-                'raw_result_type' => null,
-                'raw_result_is_false' => null
-            ];
-        }
-    }
-
-    /**
-     * 指定日の曜日メニューを取得
-     *
-     * @param string $date 配達日（Y-m-d）
-     * @return array|null 曜日メニュー
-     */
-    private function getWeekdayMenuForDate($date) {
-        try {
-            // 日付から曜日を取得（1=月, 7=日）
-            $dateObj = new DateTime($date);
-            $weekday = (int)$dateObj->format('N');
-
-            error_log("=== getWeekdayMenuForDate START ===");
-            error_log("Date: $date");
-            error_log("Weekday: $weekday");
-
-            $sql = "SELECT
-                        p.id,
-                        p.product_code,
-                        p.product_name,
-                        p.category_code,
-                        p.category_name,
-                        p.unit_price,
-                        wdm.special_note,
-                        'weekday' as menu_type
-                    FROM weekday_menus wdm
-                    INNER JOIN products p ON wdm.product_id = p.id
-                    WHERE wdm.weekday = :weekday
-                      AND wdm.is_active = 1
-                      AND p.is_active = 1
-                      AND (wdm.effective_from IS NULL OR wdm.effective_from <= :date)
-                      AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date)
-                    LIMIT 1";
-
-            error_log("SQL: $sql");
-            error_log("Params: weekday=$weekday, date=$date");
-
-            $result = $this->db->fetch($sql, [
-                'weekday' => $weekday,
-                'date' => $date
             ]);
 
-            error_log("Result type: " . gettype($result));
-            error_log("Result empty check: " . (empty($result) ? 'empty' : 'not empty'));
-            error_log("Result is_array: " . (is_array($result) ? 'yes' : 'no'));
-            error_log("Result === false: " . ($result === false ? 'yes' : 'no'));
-            error_log("Result: " . print_r($result, true));
-            error_log("=== getWeekdayMenuForDate END ===");
-
             // PDO::fetch() は結果がない場合 false を返す
-            // false の場合は null を返して、empty() チェックで正しく動作するようにする
             return ($result === false) ? null : $result;
         } catch (Exception $e) {
             // weekday_menusテーブルが存在しない場合はnullを返す
-            error_log("=== getWeekdayMenuForDate EXCEPTION ===");
-            error_log("Error: " . $e->getMessage());
-            error_log("Trace: " . $e->getTraceAsString());
             return null;
         }
     }
