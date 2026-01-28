@@ -227,13 +227,14 @@ class OrderManager {
                     WHERE wdm.weekday = :weekday
                       AND wdm.is_active = 1
                       AND p.is_active = 1
-                      AND (wdm.effective_from IS NULL OR wdm.effective_from <= :date)
-                      AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date)
+                      AND (wdm.effective_from IS NULL OR wdm.effective_from <= :date_from)
+                      AND (wdm.effective_to IS NULL OR wdm.effective_to >= :date_to)
                     LIMIT 1";
 
             $params = [
                 'weekday' => $weekday,
-                'date' => $date
+                'date_from' => $date,
+                'date_to' => $date
             ];
 
             $result = $this->db->fetch($sql, $params);
