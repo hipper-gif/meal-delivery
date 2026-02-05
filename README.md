@@ -28,12 +28,16 @@ meal-delivery/
 ## 🚀 デプロイ先
 
 ### テスト環境
-- **URL**: https://twinklemark.xsrv.jp/Smiley/meal-delivery/
+- **ベースURL**: https://twinklemark.xsrv.jp/Smiley/meal-delivery/smiley-kitchen/
+  - 既存システム: `/billing-system/`
+  - 注文システム: `/order/`
 - **ブランチ**: main, develop
 - **自動デプロイ**: プッシュ時に自動デプロイ
 
 ### 本番環境
-- **URL**: https://tw1nkle.com/Smiley/meal-delivery/
+- **ベースURL**: https://tw1nkle.com/Smiley/meal-delivery/smiley-kitchen/
+  - 既存システム: `/billing-system/`
+  - 注文システム: `/order/`
 - **ブランチ**: main (手動デプロイのみ)
 - **デプロイ**: GitHub Actions (workflow_dispatch)
 

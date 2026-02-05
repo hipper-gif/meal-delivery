@@ -53,14 +53,18 @@ jobs:
         
     - name: Verify deployment
       run: |
-        echo "🌐 テスト環境URL: https://twinklemark.xsrv.jp/Smiley/meal-delivery/billing-system/"
+        echo "🌐 テスト環境URL:"
+        echo "  - 既存システム: https://twinklemark.xsrv.jp/Smiley/meal-delivery/smiley-kitchen/billing-system/"
+        echo "  - 注文システム: https://twinklemark.xsrv.jp/Smiley/meal-delivery/smiley-kitchen/order/"
         echo "✅ FTPデプロイ完了"
-        
+
     - name: Send success notification
       if: success()
       run: |
         echo "🎉 テスト環境へのFTPデプロイが成功しました！"
-        echo "📍 確認URL: https://twinklemark.xsrv.jp/Smiley/meal-delivery/billing-system/"
+        echo "📍 確認URL:"
+        echo "  - 既存システム: https://twinklemark.xsrv.jp/Smiley/meal-delivery/smiley-kitchen/billing-system/"
+        echo "  - 注文システム: https://twinklemark.xsrv.jp/Smiley/meal-delivery/smiley-kitchen/order/"
         echo "📝 次のステップ: データベース接続確認"
         
     - name: Send failure notification  

@@ -111,14 +111,18 @@ jobs:
         
     - name: Verify production deployment
       run: |
-        echo "🌐 本番環境URL: https://tw1nkle.com/Smiley/meal-delivery/billing-system/"
+        echo "🌐 本番環境URL:"
+        echo "  - 既存システム: https://tw1nkle.com/Smiley/meal-delivery/smiley-kitchen/billing-system/"
+        echo "  - 注文システム: https://tw1nkle.com/Smiley/meal-delivery/smiley-kitchen/order/"
         echo "✅ 本番FTPデプロイ完了"
-        
+
     - name: Send success notification
       if: success()
       run: |
         echo "🎉 本番環境へのFTPデプロイが成功しました！"
-        echo "📍 確認URL: https://tw1nkle.com/Smiley/meal-delivery/billing-system/"
+        echo "📍 確認URL:"
+        echo "  - 既存システム: https://tw1nkle.com/Smiley/meal-delivery/smiley-kitchen/billing-system/"
+        echo "  - 注文システム: https://tw1nkle.com/Smiley/meal-delivery/smiley-kitchen/order/"
         echo "📝 デプロイメントの説明: ${{ github.event.inputs.deployment_note }}"
         echo "⚠️  本番環境の動作確認を行ってください"
         
