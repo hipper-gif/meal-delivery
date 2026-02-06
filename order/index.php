@@ -1,12 +1,70 @@
+<?php
+/**
+ * ランディングページ
+ * 管理者が編集可能なコンテンツをDBから取得
+ */
+
+require_once __DIR__ . '/../common/config/database.php';
+
+// ランディングページ設定を取得
+$db = Database::getInstance();
+$settings = [];
+
+try {
+    $sql = "SELECT setting_key, setting_value FROM landing_page_settings WHERE is_active = 1";
+    $results = $db->fetchAll($sql);
+    foreach ($results as $row) {
+        $settings[$row['setting_key']] = $row['setting_value'];
+    }
+} catch (Exception $e) {
+    // テーブルが存在しない場合はデフォルト値を使用
+}
+
+// デフォルト値
+$defaults = [
+    'hero_title' => 'おいしいお弁当を<br>あなたの職場へ',
+    'hero_subtitle' => '毎日の昼食をもっと楽しく、もっと手軽に',
+    'hero_image' => '',
+    'feature1_title' => 'かんたん注文',
+    'feature1_desc' => 'スマホから3タップで注文完了。忙しい朝でもサクッと注文できます。',
+    'feature1_icon' => 'touch_app',
+    'feature2_title' => '栄養バランス',
+    'feature2_desc' => '管理栄養士監修のメニューで、健康的な食生活をサポートします。',
+    'feature2_icon' => 'favorite',
+    'feature3_title' => '職場へお届け',
+    'feature3_desc' => 'お昼時にオフィスまでお届け。外出不要でランチタイムを有効活用。',
+    'feature3_icon' => 'local_shipping',
+    'primary_color' => '#5D8A4A',
+    'accent_color' => '#E8B86D',
+    'company_name' => 'Smiley Kitchen',
+    'contact_phone' => '',
+    'contact_email' => '',
+];
+
+// 設定をマージ
+$config = array_merge($defaults, $settings);
+?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smiley配食システム - 企業向け配食サービス</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title><?= htmlspecialchars($config['company_name']) ?> - 企業向け配食サービス</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
+        :root {
+            --primary: <?= htmlspecialchars($config['primary_color']) ?>;
+            --primary-light: <?= htmlspecialchars($config['primary_color']) ?>22;
+            --accent: <?= htmlspecialchars($config['accent_color']) ?>;
+            --text: #3D3D3D;
+            --text-light: #6B6B6B;
+            --bg: #FAFAF8;
+            --white: #FFFFFF;
+            --shadow: 0 4px 24px rgba(0,0,0,0.06);
+            --radius: 16px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,304 +72,402 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.8;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* ヘッダー */
         .header {
-            background: white;
-            padding: 1rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
+            position: fixed;
             top: 0;
-            z-index: 1000;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            padding: 16px 24px;
         }
 
-        .header .container {
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
         }
 
         .logo {
-            font-size: 28px;
-            font-weight: bold;
-            color: #4CAF50;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .header-buttons {
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .nav-buttons {
             display: flex;
-            gap: 15px;
+            gap: 12px;
         }
 
         .btn {
-            padding: 12px 28px;
-            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
             text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             border: none;
             cursor: pointer;
-            font-size: 16px;
+        }
+
+        .btn-ghost {
+            color: var(--text);
+            background: transparent;
+        }
+
+        .btn-ghost:hover {
+            background: var(--primary-light);
+            color: var(--primary);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
+            background: var(--primary);
+            color: var(--white);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+            box-shadow: 0 8px 24px rgba(93,138,74,0.3);
         }
 
-        .btn-outline {
-            background: white;
-            color: #4CAF50;
-            border: 2px solid #4CAF50;
+        .btn-accent {
+            background: var(--accent);
+            color: var(--white);
         }
 
-        .btn-outline:hover {
-            background: #4CAF50;
-            color: white;
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(232,184,109,0.4);
         }
 
-        /* ヒーローセクション */
+        /* ヒーロー */
         .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 100px 20px;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-size: 48px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 20px;
-            margin-bottom: 40px;
-            opacity: 0.95;
-        }
-
-        .hero .cta-buttons {
+            min-height: 100vh;
             display: flex;
-            gap: 20px;
-            justify-content: center;
+            align-items: center;
+            padding: 120px 24px 80px;
+            background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+
+        .hero-content p {
+            font-size: 18px;
+            color: var(--text-light);
+            margin-bottom: 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
             flex-wrap: wrap;
         }
 
-        .hero .btn {
-            font-size: 18px;
-            padding: 16px 40px;
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-visual {
+            width: 100%;
+            max-width: 480px;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent)33 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .hero-emoji {
+            font-size: 180px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
 
         /* 特徴セクション */
         .features {
-            padding: 80px 20px;
-            background: #f5f5f5;
+            padding: 100px 24px;
+            background: var(--white);
         }
 
-        .features h2 {
+        .section-header {
             text-align: center;
-            font-size: 36px;
             margin-bottom: 60px;
-            color: #333;
+        }
+
+        .section-label {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--text);
         }
 
         .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
         }
 
         .feature-card {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            padding: 40px 24px;
+            background: var(--bg);
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
         }
 
         .feature-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow);
+            background: var(--white);
         }
 
         .feature-icon {
-            font-size: 64px;
-            color: #4CAF50;
-            margin-bottom: 20px;
+            width: 72px;
+            height: 72px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .feature-icon .material-icons-outlined {
+            font-size: 32px;
+            color: var(--primary);
         }
 
         .feature-card h3 {
-            font-size: 24px;
-            margin-bottom: 15px;
-            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
         }
 
         .feature-card p {
-            color: #666;
+            font-size: 15px;
+            color: var(--text-light);
             line-height: 1.8;
         }
 
         /* 使い方セクション */
-        .how-to {
-            padding: 80px 20px;
-            background: white;
-        }
-
-        .how-to h2 {
-            text-align: center;
-            font-size: 36px;
-            margin-bottom: 60px;
-            color: #333;
+        .how-it-works {
+            padding: 100px 24px;
+            background: var(--bg);
         }
 
         .steps {
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
         .step {
             display: flex;
-            gap: 30px;
-            margin-bottom: 50px;
-            align-items: center;
+            gap: 32px;
+            align-items: flex-start;
+            margin-bottom: 48px;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 56px;
+            width: 2px;
+            height: calc(100% - 8px);
+            background: var(--primary-light);
         }
 
         .step-number {
-            min-width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: var(--white);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 20px;
+            font-weight: 700;
+            flex-shrink: 0;
         }
 
         .step-content h3 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
         }
 
         .step-content p {
-            color: #666;
-            line-height: 1.8;
-        }
-
-        /* FAQ セクション */
-        .faq {
-            padding: 80px 20px;
-            background: #f5f5f5;
-        }
-
-        .faq h2 {
-            text-align: center;
-            font-size: 36px;
-            margin-bottom: 60px;
-            color: #333;
-        }
-
-        .faq-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .faq-item {
-            background: white;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .faq-question {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 12px;
-        }
-
-        .faq-answer {
-            color: #666;
-            line-height: 1.8;
+            color: var(--text-light);
+            font-size: 15px;
         }
 
         /* CTAセクション */
         .cta {
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 100px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, #4A7A3A 100%);
             text-align: center;
         }
 
         .cta h2 {
             font-size: 36px;
-            margin-bottom: 20px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 16px;
         }
 
         .cta p {
-            font-size: 20px;
+            font-size: 18px;
+            color: rgba(255,255,255,0.9);
             margin-bottom: 40px;
-            opacity: 0.95;
+        }
+
+        .cta .btn-accent {
+            font-size: 18px;
+            padding: 18px 48px;
         }
 
         /* フッター */
         .footer {
-            background: #333;
-            color: white;
-            padding: 40px 20px;
+            padding: 48px 24px;
+            background: var(--text);
+            color: rgba(255,255,255,0.7);
             text-align: center;
         }
 
+        .footer-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 16px;
+        }
+
         .footer p {
-            margin-bottom: 10px;
-            opacity: 0.8;
+            font-size: 14px;
+            margin-bottom: 8px;
         }
 
         /* レスポンシブ */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 32px;
+        @media (max-width: 900px) {
+            .hero-inner {
+                grid-template-columns: 1fr;
+                text-align: center;
             }
 
-            .hero p {
-                font-size: 18px;
+            .hero-content h1 {
+                font-size: 36px;
             }
 
-            .hero .cta-buttons {
-                flex-direction: column;
-                align-items: center;
+            .hero-buttons {
+                justify-content: center;
             }
 
-            .features h2, .how-to h2, .faq h2, .cta h2 {
+            .hero-image {
+                order: -1;
+            }
+
+            .hero-visual {
+                max-width: 300px;
+            }
+
+            .hero-emoji {
+                font-size: 120px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .cta h2 {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .nav-buttons {
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .hero {
+                padding: 100px 16px 60px;
+            }
+
+            .hero-content h1 {
                 font-size: 28px;
             }
 
             .step {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .header-buttons {
-                flex-direction: column;
-                gap: 10px;
+                gap: 20px;
             }
         }
     </style>
@@ -319,147 +475,116 @@
 <body>
     <!-- ヘッダー -->
     <header class="header">
-        <div class="container">
-            <a href="landing.php" class="logo">🍱 Smiley Kitchen</a>
-            <div class="header-buttons">
-                <a href="pages/login.php" class="btn btn-outline">ログイン</a>
-                <a href="pages/signup.php" class="btn btn-primary">新規登録</a>
-            </div>
+        <div class="header-inner">
+            <a href="index.php" class="logo">
+                <span class="logo-icon">🍱</span>
+                <?= htmlspecialchars($config['company_name']) ?>
+            </a>
+            <nav class="nav-buttons">
+                <a href="login.php" class="btn btn-ghost">ログイン</a>
+                <a href="signup.php" class="btn btn-primary">新規登録</a>
+            </nav>
         </div>
     </header>
 
     <!-- ヒーロー -->
     <section class="hero">
-        <h1>企業向け配食サービスを<br>もっと簡単に、もっと便利に</h1>
-        <p>Smiley配食システムで、社員の昼食管理を効率化しましょう</p>
-        <div class="cta-buttons">
-            <a href="pages/signup.php" class="btn btn-primary">今すぐ始める（無料）</a>
-            <a href="#how-to" class="btn btn-outline">使い方を見る</a>
+        <div class="hero-inner">
+            <div class="hero-content">
+                <h1><?= $config['hero_title'] ?></h1>
+                <p><?= htmlspecialchars($config['hero_subtitle']) ?></p>
+                <div class="hero-buttons">
+                    <a href="signup.php" class="btn btn-primary">無料で始める</a>
+                    <a href="#how-it-works" class="btn btn-ghost">使い方を見る</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-visual">
+                    <span class="hero-emoji">🍱</span>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- 特徴 -->
     <section class="features">
-        <h2>Smiley配食システムの特徴</h2>
+        <div class="section-header">
+            <span class="section-label">Features</span>
+            <h2 class="section-title">選ばれる理由</h2>
+        </div>
         <div class="features-grid">
             <div class="feature-card">
-                <div class="material-icons feature-icon">smartphone</div>
-                <h3>スマホで簡単注文</h3>
-                <p>社員はスマホから簡単に注文できます。アプリのインストールは不要で、ブラウザからすぐに利用開始できます。</p>
+                <div class="feature-icon">
+                    <span class="material-icons-outlined"><?= htmlspecialchars($config['feature1_icon']) ?></span>
+                </div>
+                <h3><?= htmlspecialchars($config['feature1_title']) ?></h3>
+                <p><?= htmlspecialchars($config['feature1_desc']) ?></p>
             </div>
-
             <div class="feature-card">
-                <div class="material-icons feature-icon">business</div>
-                <h3>企業一括管理</h3>
-                <p>企業ごとに社員をまとめて管理。注文状況や請求書を一元管理できるため、総務担当者の負担を大幅に軽減します。</p>
+                <div class="feature-icon">
+                    <span class="material-icons-outlined"><?= htmlspecialchars($config['feature2_icon']) ?></span>
+                </div>
+                <h3><?= htmlspecialchars($config['feature2_title']) ?></h3>
+                <p><?= htmlspecialchars($config['feature2_desc']) ?></p>
             </div>
-
             <div class="feature-card">
-                <div class="material-icons feature-icon">receipt</div>
-                <h3>自動請求書発行</h3>
-                <p>月末に自動で請求書を作成。集金業務の手間を削減し、経理処理をスムーズに行えます。</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="material-icons feature-icon">restaurant</div>
-                <h3>多彩なメニュー</h3>
-                <p>日替わりメニューから定番メニューまで、豊富なラインナップ。栄養バランスにも配慮した美味しいお弁当をお届けします。</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="material-icons feature-icon">local_shipping</div>
-                <h3>確実な配送</h3>
-                <p>指定時間に確実にお届け。配送状況もリアルタイムで確認できるため、安心してご利用いただけます。</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="material-icons feature-icon">support_agent</div>
-                <h3>充実サポート</h3>
-                <p>導入から運用まで、専任スタッフが丁寧にサポート。不明点はいつでもお問い合わせいただけます。</p>
+                <div class="feature-icon">
+                    <span class="material-icons-outlined"><?= htmlspecialchars($config['feature3_icon']) ?></span>
+                </div>
+                <h3><?= htmlspecialchars($config['feature3_title']) ?></h3>
+                <p><?= htmlspecialchars($config['feature3_desc']) ?></p>
             </div>
         </div>
     </section>
 
     <!-- 使い方 -->
-    <section class="how-to" id="how-to">
-        <h2>ご利用の流れ</h2>
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header">
+            <span class="section-label">How it works</span>
+            <h2 class="section-title">ご利用の流れ</h2>
+        </div>
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                    <h3>企業登録</h3>
-                    <p>まずは企業情報を登録します。企業コードが自動発行されるので、社員に共有してください。</p>
+                    <h3>アカウント登録</h3>
+                    <p>企業コードとメールアドレスで簡単登録。1分で完了します。</p>
                 </div>
             </div>
-
             <div class="step">
                 <div class="step-number">2</div>
                 <div class="step-content">
-                    <h3>社員登録</h3>
-                    <p>社員の方は企業コードを使って簡単に登録できます。お名前とパスワードを設定するだけで完了です。</p>
+                    <h3>メニューを選ぶ</h3>
+                    <p>日替わり・週替わりメニューから好きなお弁当を選択。</p>
                 </div>
             </div>
-
             <div class="step">
                 <div class="step-number">3</div>
                 <div class="step-content">
-                    <h3>注文開始</h3>
-                    <p>登録完了後、すぐに注文が可能になります。スマホから好きなメニューを選んで注文しましょう。</p>
+                    <h3>職場でお受け取り</h3>
+                    <p>お昼時にオフィスまでお届け。あとは美味しくいただくだけ。</p>
                 </div>
-            </div>
-
-            <div class="step">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                    <h3>お弁当のお届け</h3>
-                    <p>指定時間にオフィスまでお届けします。温かいお弁当をお楽しみください。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="faq">
-        <h2>よくある質問</h2>
-        <div class="faq-container">
-            <div class="faq-item">
-                <div class="faq-question">Q. 料金はどのくらいですか？</div>
-                <div class="faq-answer">A. お弁当1食あたり500円〜700円です。企業様の規模や注文数に応じて割引プランもご用意しております。</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">Q. 最低注文数はありますか？</div>
-                <div class="faq-answer">A. 1日あたり最低10食からご注文いただけます。小規模企業様でも安心してご利用いただけます。</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">Q. キャンセルは可能ですか？</div>
-                <div class="faq-answer">A. 配送日前日の17時までであれば、無料でキャンセル可能です。それ以降のキャンセルは50%のキャンセル料が発生します。</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">Q. アレルギー対応はできますか？</div>
-                <div class="faq-answer">A. はい、アレルギー情報を登録いただければ、該当食材を使用しないメニューをご提案します。</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">Q. 支払い方法は？</div>
-                <div class="faq-answer">A. 企業様への月末一括請求となります。銀行振込または口座振替に対応しております。</div>
             </div>
         </div>
     </section>
 
     <!-- CTA -->
     <section class="cta">
-        <h2>今すぐ始めましょう</h2>
-        <p>登録は無料です。まずはお試しでご利用ください</p>
-        <a href="pages/signup.php" class="btn btn-primary">無料で始める</a>
+        <h2>今日から始めませんか？</h2>
+        <p>登録は無料。すぐに注文を始められます。</p>
+        <a href="signup.php" class="btn btn-accent">無料で登録する</a>
     </section>
 
     <!-- フッター -->
     <footer class="footer">
-        <p>&copy; 2025 Smiley配食事業. All rights reserved.</p>
-        <p>お問い合わせ: 0120-XXX-XXX（平日 9:00-17:00）</p>
+        <div class="footer-logo">🍱 <?= htmlspecialchars($config['company_name']) ?></div>
+        <?php if (!empty($config['contact_phone'])): ?>
+        <p>Tel: <?= htmlspecialchars($config['contact_phone']) ?></p>
+        <?php endif; ?>
+        <?php if (!empty($config['contact_email'])): ?>
+        <p>Email: <?= htmlspecialchars($config['contact_email']) ?></p>
+        <?php endif; ?>
+        <p>&copy; <?= date('Y') ?> <?= htmlspecialchars($config['company_name']) ?></p>
     </footer>
 </body>
 </html>
