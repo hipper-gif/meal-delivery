@@ -231,7 +231,7 @@ $showStickyCta = $config['show_sticky_cta'] === '1';
             overflow: hidden;
         }
 
-        .hero-bg {
+        .hero-bg-desktop {
             position: absolute;
             top: 0;
             right: 0;
@@ -240,13 +240,13 @@ $showStickyCta = $config['show_sticky_cta'] === '1';
             z-index: 0;
         }
 
-        .hero-bg img {
+        .hero-bg-desktop img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .hero-bg::after {
+        .hero-bg-desktop::after {
             content: '';
             position: absolute;
             top: 0;
@@ -255,6 +255,22 @@ $showStickyCta = $config['show_sticky_cta'] === '1';
             height: 100%;
             background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
         }
+
+        .hero-bg-mobile {
+            display: none;
+            width: 100%;
+            height: 250px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        .hero-bg-mobile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
 
         .hero-inner {
             position: relative;
@@ -928,7 +944,9 @@ $showStickyCta = $config['show_sticky_cta'] === '1';
             .hero-content h1 { font-size: 40px; }
             .hero-buttons { justify-content: center; }
             .hero-visual { order: -1; }
-            .hero-bg { display: none; }
+            .hero-bg-desktop { display: none; }
+            .hero-bg-mobile { display: block; }
+            .hero { flex-direction: column; }
             .features-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
             .gallery-grid { grid-template-columns: repeat(2, 1fr); }
             .testimonials-grid { grid-template-columns: 1fr; }
@@ -981,11 +999,16 @@ $showStickyCta = $config['show_sticky_cta'] === '1';
     <!-- ヒーロー -->
     <section class="hero" data-section="hero">
         <?php if ($hasHeroImage): ?>
-        <div class="hero-bg">
+        <div class="hero-bg hero-bg-desktop">
             <img src="<?= htmlspecialchars($images['hero'][0]['image_path']) ?>" alt="">
         </div>
         <?php endif; ?>
         <div class="container">
+            <?php if ($hasHeroImage): ?>
+            <div class="hero-bg-mobile">
+                <img src="<?= htmlspecialchars($images['hero'][0]['image_path']) ?>" alt="">
+            </div>
+            <?php endif; ?>
             <div class="hero-inner">
                 <div class="hero-content">
                     <h1 data-field="hero_title"><?= $config['hero_title'] ?></h1>
