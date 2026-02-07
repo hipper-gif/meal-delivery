@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ログイン - Smiley配食システム</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
@@ -13,7 +14,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .login-container {
@@ -35,10 +36,23 @@
         }
 
         .login-logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #4CAF50;
+            font-size: 22px;
+            font-weight: 700;
+            color: #5D8A4A;
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .login-logo:hover {
+            color: #5D8A4A;
+        }
+
+        .logo-icon {
+            font-size: 28px;
         }
 
         .login-title {
@@ -94,7 +108,10 @@
     <div class="login-container">
         <!-- ロゴ・タイトル -->
         <div class="login-header">
-            <div class="login-logo">🍱 Smiley Kitchen</div>
+            <a href="index.php" class="login-logo">
+                <span class="logo-icon">🍱</span>
+                Smiley Kitchen
+            </a>
             <div class="login-title">ログイン</div>
         </div>
 
@@ -177,7 +194,7 @@
                 if (result.success) {
                     // ログイン成功
                     errorDiv.style.display = 'none';
-                    window.location.href = 'pages/order_dashboard.php';
+                    window.location.href = 'pages/dashboard.php';
                 } else {
                     // エラー表示
                     errorDiv.textContent = result.error;

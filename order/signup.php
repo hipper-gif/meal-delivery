@@ -5,30 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新規登録 - Smiley配食システム</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
             background: #F5F5F5;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .header {
-            background: white;
-            padding: 24px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             margin-bottom: 32px;
         }
 
-        .header-logo {
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #5D8A4A;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo:hover {
+            color: #5D8A4A;
+        }
+
+        .logo-icon {
             font-size: 28px;
-            font-weight: bold;
-            color: #4CAF50;
         }
 
         .header-title {
             font-size: 24px;
             color: #333;
-            margin: 12px 0;
         }
 
         .flow-steps {
@@ -137,10 +156,17 @@
 <body>
     <!-- ヘッダー -->
     <div class="header">
-        <div class="container text-center">
-            <div class="header-logo">🍱 Smiley Kitchen</div>
-            <div class="header-title">新規登録</div>
-            <a href="login.php">既に登録済みの方はこちら</a>
+        <div class="container">
+            <div class="header-inner">
+                <a href="index.php" class="logo">
+                    <span class="logo-icon">🍱</span>
+                    Smiley Kitchen
+                </a>
+                <div>
+                    <span class="header-title" style="margin-right: 16px;">新規登録</span>
+                    <a href="login.php">既に登録済みの方はこちら</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -514,7 +540,7 @@
 
                 if (result.success) {
                     alert('登録が完了しました！\n企業コード: ' + result.data.company_code);
-                    window.location.href = 'pages/order_dashboard.php';
+                    window.location.href = 'pages/dashboard.php';
                 } else {
                     alert('エラー: ' + result.error);
                     submitButton.disabled = false;
