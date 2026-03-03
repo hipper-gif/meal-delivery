@@ -15,7 +15,7 @@ if (strpos($host, 'twinklemark.xsrv.jp') !== false) {
     define('DB_USER', 'twinklemark_bill');
     define('DB_PASS', 'Smiley2525');
     define('ENVIRONMENT', 'test');
-    define('BASE_URL', 'https://twinklemark.xsrv.jp/Smiley/meal-delivery/billing-system/');
+    define('BASE_URL', 'https://twinklemark.xsrv.jp/Smiley/meal-delivery/smiley-kitchen/billing-system/');
     define('DEBUG_MODE', false);
     
 } elseif (strpos($host, 'tw1nkle.com') !== false) {
@@ -25,7 +25,7 @@ if (strpos($host, 'twinklemark.xsrv.jp') !== false) {
     define('DB_USER', 'tw1nkle_bill');
     define('DB_PASS', 'Smiley2525');
     define('ENVIRONMENT', 'production');
-    define('BASE_URL', 'https://tw1nkle.com/Smiley/meal-delivery/billing-system/');
+    define('BASE_URL', 'https://tw1nkle.com/Smiley/meal-delivery/smiley-kitchen/billing-system/');
     define('DEBUG_MODE', false);
     
 } else {

@@ -9,7 +9,7 @@ session_start();
 
 // 既にログインしている場合は注文画面へリダイレクト
 if (isset($_SESSION['user_id'])) {
-    header('Location: /pages/order_dashboard.php');
+    header('Location: order_dashboard.php');
     exit;
 }
 
