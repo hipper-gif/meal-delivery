@@ -751,7 +751,7 @@
             console.log('入金記録:', paymentData);
             
             // API呼び出し例
-            fetch('/api/payments.php', {
+            fetch('../api/payments.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -806,7 +806,7 @@
                 // 一括処理API呼び出し
                 console.log('一括処理:', invoiceNumbers);
                 
-                fetch('/api/payments.php', {
+                fetch('../api/payments.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
