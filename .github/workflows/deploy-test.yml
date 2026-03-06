@@ -5,10 +5,6 @@ on:
     branches:
       - main
       - develop
-  pull_request:
-    branches:
-      - main
-      - develop
   workflow_dispatch:  # 手動実行も可能
 
 jobs:
@@ -34,6 +30,14 @@ jobs:
 
         echo "✅ デプロイパッケージ作成完了"
         
+    - name: Test FTP connectivity
+      run: |
+        echo "🔍 FTP接続診断..."
+        # FTPサーバーへのポート21接続テスト（秘密情報は表示しない）
+        nc -zv -w 10 ${{ secrets.FTP_SERVER }} 21 && echo "✅ Port 21 reachable" || echo "❌ Port 21 not reachable"
+        nc -zv -w 10 ${{ secrets.FTP_SERVER }} 990 && echo "✅ Port 990 (FTPS implicit) reachable" || echo "❌ Port 990 not reachable"
+      continue-on-error: true
+
     - name: Deploy to Test Server via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -41,6 +45,10 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: ${{ secrets.FTP_SERVER_DIR }}
+        security: loose
+        port: 21
+        timeout: 60000
+        log-level: verbose
         exclude: |
           **/.git*
           **/.git*/**
