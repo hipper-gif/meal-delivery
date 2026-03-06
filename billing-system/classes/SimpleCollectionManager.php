@@ -893,4 +893,21 @@ class SimpleCollectionManager {
             return null;
         }
     }
+
+    /**
+     * 注文データが1件以上存在するか確認（期間問わず全件）
+     * @return bool
+     */
+    public function hasAnyOrders() {
+        try {
+            $sql = "SELECT COUNT(*) as count FROM orders";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int)($result['count'] ?? 0) > 0;
+        } catch (Exception $e) {
+            error_log("SimpleCollectionManager::hasAnyOrders Error: " . $e->getMessage());
+            return false;
+        }
+    }
 }

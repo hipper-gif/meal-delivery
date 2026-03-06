@@ -146,6 +146,7 @@ try {
     // 統計データ取得
     $statistics = $collectionManager->getMonthlyCollectionStats();
     $alerts = $collectionManager->getAlerts();
+    $hasAnyOrders = $collectionManager->hasAnyOrders();
 
     // 表示タイプ（個人別/企業別）
     $viewType = $_GET['view'] ?? 'individual';
@@ -215,6 +216,7 @@ try {
     $alerts = ['alert_count' => 0, 'overdue' => ['count' => 0], 'due_soon' => ['count' => 0]];
     $receivables = [];
     $paymentHistory = [];
+    $hasAnyOrders = false;
 }
 
 // ヘッダー読み込み
@@ -329,7 +331,7 @@ require_once __DIR__ . '/../includes/header.php';
 <?php endif; ?>
 
 <!-- データがない場合の案内 -->
-<?php if (($statistics['total_orders'] ?? 0) === 0): ?>
+<?php if (!$hasAnyOrders): ?>
 <div class="row mb-4">
     <div class="col-12">
         <div class="alert alert-warning">
