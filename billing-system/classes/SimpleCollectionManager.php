@@ -322,7 +322,7 @@ class SimpleCollectionManager {
             // 合計未払い額を計算
             $totalOutstanding = array_sum(array_column($orders, 'outstanding'));
 
-            if ($amount > $totalOutstanding) {
+            if ($amount > $totalOutstanding + 0.01) {
                 throw new Exception("入金額（¥" . number_format($amount) . "）が未払い合計（¥" . number_format($totalOutstanding) . "）を超えています");
             }
 
@@ -601,6 +601,8 @@ class SimpleCollectionManager {
      */
     public function getUserReceivables($filters = []) {
         try {
+            // サブクエリで注文ごとに入金額を集計してからJOINすることで、
+            // 複数の入金明細がある場合のSUM重複カウントを防ぐ
             $sql = "
                 SELECT
                     u.id as user_id,
@@ -609,11 +611,15 @@ class SimpleCollectionManager {
                     u.company_name,
                     COUNT(DISTINCT o.id) as total_orders,
                     COALESCE(SUM(o.total_amount), 0) as total_ordered,
-                    COALESCE(SUM(opd.allocated_amount), 0) as total_paid,
-                    (COALESCE(SUM(o.total_amount), 0) - COALESCE(SUM(opd.allocated_amount), 0)) as outstanding_amount
+                    COALESCE(SUM(COALESCE(opd_sum.paid_amount, 0)), 0) as total_paid,
+                    COALESCE(SUM(o.total_amount - COALESCE(opd_sum.paid_amount, 0)), 0) as outstanding_amount
                 FROM users u
                 LEFT JOIN orders o ON u.id = o.user_id
-                LEFT JOIN order_payment_details opd ON o.id = opd.order_id
+                LEFT JOIN (
+                    SELECT order_id, SUM(allocated_amount) as paid_amount
+                    FROM order_payment_details
+                    GROUP BY order_id
+                ) opd_sum ON o.id = opd_sum.order_id
                 WHERE 1=1
             ";
 
@@ -652,16 +658,22 @@ class SimpleCollectionManager {
      */
     public function getCompanyReceivables($filters = []) {
         try {
+            // サブクエリで注文ごとに入金額を集計してからJOINすることで、
+            // 複数の入金明細がある場合のSUM重複カウントを防ぐ
             $sql = "
                 SELECT
                     o.company_name,
                     COUNT(DISTINCT o.id) as total_orders,
                     COUNT(DISTINCT o.user_id) as user_count,
                     COALESCE(SUM(o.total_amount), 0) as total_ordered,
-                    COALESCE(SUM(opd.allocated_amount), 0) as total_paid,
-                    (COALESCE(SUM(o.total_amount), 0) - COALESCE(SUM(opd.allocated_amount), 0)) as outstanding_amount
+                    COALESCE(SUM(COALESCE(opd_sum.paid_amount, 0)), 0) as total_paid,
+                    COALESCE(SUM(o.total_amount - COALESCE(opd_sum.paid_amount, 0)), 0) as outstanding_amount
                 FROM orders o
-                LEFT JOIN order_payment_details opd ON o.id = opd.order_id
+                LEFT JOIN (
+                    SELECT order_id, SUM(allocated_amount) as paid_amount
+                    FROM order_payment_details
+                    GROUP BY order_id
+                ) opd_sum ON o.id = opd_sum.order_id
                 WHERE o.company_name IS NOT NULL AND o.company_name != ''
                 GROUP BY o.company_name
                 HAVING outstanding_amount > 0
