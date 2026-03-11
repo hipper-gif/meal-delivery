@@ -233,6 +233,11 @@ $showBackButton = $showBackButton ?? false;
                     集金管理
                 </a>
 
+                <a href="<?php echo htmlspecialchars($basePath ?? '..'); ?>/pages/monthly_sales.php"
+                   class="nav-item-btn <?php echo $activePage === 'monthly_sales' ? 'active' : ''; ?>">
+                    月別売上
+                </a>
+
                 <a href="<?php echo htmlspecialchars($basePath ?? '..'); ?>/pages/companies.php"
                    class="nav-item-btn <?php echo $activePage === 'companies' ? 'active' : ''; ?>">
                     企業管理
